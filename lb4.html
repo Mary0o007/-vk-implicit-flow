@@ -1,0 +1,66 @@
+
+<!-- Лабораторная работа №4: Implicit Flow -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Лабораторная работа 4 - Изменение статуса VK</title>
+</head>
+<body>
+  <h2>Лабораторная работа №4: Работа с VK API через Implicit Flow</h2>
+  <p>Авторизация и изменение статуса пользователя с использованием VK API и Implicit Flow</p>
+  <button onclick="authorize()">Авторизоваться через VK</button>
+  <button onclick="changeStatus()">Изменить статус</button>
+
+  <script>
+    // Параметры приложения
+    const client_id = '53419169'; // Замените на свой client_id
+    const redirect_uri = 'https://oauth.vk.com/blank.html';
+    const scope = 'status,offline';
+    const version = '5.131';
+    let access_token = null;
+
+    // Функция авторизации пользователя через VK
+    function authorize() {
+      const url = `https://oauth.vk.com/authorize?client_id=${client_id}&display=page&redirect_uri=${redirect_uri}&scope=${scope}&response_type=token&v=${version}`;
+      window.location.href = url;
+    }
+
+    // Извлечение access_token из URL
+    function extractToken() {
+      if (window.location.hash.includes('access_token')) {
+        const params = new URLSearchParams(window.location.hash.substring(1));
+        access_token = params.get('access_token');
+        alert("Авторизация успешна! Токен получен.");
+      }
+    }
+
+    // Функция изменения статуса пользователя
+    async function changeStatus() {
+      if (!access_token) {
+        alert("Пожалуйста, авторизуйтесь сначала.");
+        return;
+      }
+      const newStatus = prompt("Введите новый статус:");
+      if (!newStatus) return;
+      const url = `https://api.vk.com/method/status.set?text=${encodeURIComponent(newStatus)}&access_token=${access_token}&v=${version}`;
+      try {
+        const response = await fetch(url);
+        const result = await response.json();
+        if (result.response === 1) {
+          alert("Статус успешно обновлён!");
+        } else {
+          console.error(result);
+          alert("Произошла ошибка при изменении статуса.");
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Ошибка запроса к VK API.");
+      }
+    }
+
+    // Автоматически извлекаем токен при загрузке страницы
+    extractToken();
+  </script>
+</body>
+</html>
